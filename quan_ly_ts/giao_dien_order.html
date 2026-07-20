@@ -1,0 +1,539 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0"
+    />
+    <title>Order Trà Sữa</title>
+    <style>
+      :root {
+        --blue: #1565d8;
+        --blue-light: #e8f1ff;
+        --blue-dark: #0d47a1;
+        --bg: #ffffff;
+        --text: #1a1a1a;
+        --gray: #6b7280;
+        --border: #e5e7eb;
+      }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        background: #f6f8fb;
+        color: var(--text);
+        max-width: 480px;
+        margin: 0 auto;
+        min-height: 100vh;
+      }
+
+      /* HEADER */
+      header {
+        background: var(--blue);
+        color: #fff;
+        padding: 16px 16px 14px;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        box-shadow: 0 2px 8px rgba(21, 101, 216, 0.25);
+      }
+      header h1 {
+        font-size: 18px;
+        font-weight: 700;
+      }
+      header .table-info {
+        margin-top: 4px;
+        font-size: 13px;
+        opacity: 0.9;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      header .table-info select {
+        background: rgba(255, 255, 255, 0.15);
+        border: 1px solid rgba(255, 255, 255, 0.4);
+        color: #fff;
+        border-radius: 8px;
+        padding: 4px 8px;
+        font-size: 13px;
+      }
+
+      /* CATEGORY TABS */
+      .tabs {
+        display: flex;
+        gap: 8px;
+        padding: 12px 12px 4px;
+        overflow-x: auto;
+        background: #fff;
+        border-bottom: 1px solid var(--border);
+      }
+      .tabs::-webkit-scrollbar {
+        display: none;
+      }
+      .tab {
+        flex: 0 0 auto;
+        padding: 8px 14px;
+        border-radius: 20px;
+        font-size: 13px;
+        font-weight: 600;
+        background: #f1f3f6;
+        color: var(--gray);
+        white-space: nowrap;
+        cursor: pointer;
+      }
+      .tab.active {
+        background: var(--blue);
+        color: #fff;
+      }
+
+      /* MENU LIST */
+      .menu {
+        padding: 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .item-card {
+        background: #fff;
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 12px;
+        display: flex;
+        gap: 12px;
+        align-items: center;
+      }
+      .item-card img {
+        width: 60px;
+        height: 60px;
+        border-radius: 10px;
+        object-fit: cover;
+        background: #eef2f7;
+        flex-shrink: 0;
+      }
+      .item-info {
+        flex: 1;
+        min-width: 0;
+      }
+      .item-info .name {
+        font-size: 14px;
+        font-weight: 600;
+      }
+      .item-info .price {
+        font-size: 14px;
+        font-weight: 700;
+        color: var(--blue);
+        margin-top: 2px;
+      }
+      .add-btn {
+        background: var(--blue);
+        color: #fff;
+        border: none;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        font-size: 18px;
+        font-weight: 700;
+        flex-shrink: 0;
+      }
+
+      /* OUT OF STOCK STATE */
+      .item-card.out-of-stock {
+        opacity: 0.5;
+        position: relative;
+      }
+      .item-card.out-of-stock img {
+        filter: grayscale(100%);
+      }
+      .item-card.out-of-stock .add-btn {
+        background: var(--gray);
+        pointer-events: none;
+      }
+      .out-of-stock-badge {
+        display: inline-block;
+        background: #9ca3af;
+        color: #fff;
+        font-size: 11px;
+        font-weight: 700;
+        padding: 2px 8px;
+        border-radius: 8px;
+        margin-top: 4px;
+      }
+
+      /* CURRENT ORDER SUMMARY (bottom sheet style) */
+      .order-summary {
+        background: #fff;
+        border-top: 1px solid var(--border);
+        padding: 12px;
+        margin-top: 6px;
+      }
+      .order-summary h2 {
+        font-size: 15px;
+        color: var(--blue-dark);
+        margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .edit-order-btn {
+        border: 1.5px solid var(--blue);
+        background: var(--blue-light);
+        color: var(--blue);
+        font-size: 12px;
+        font-weight: 700;
+        padding: 6px 12px;
+        border-radius: 20px;
+      }
+      .edit-order-btn.active {
+        background: var(--blue);
+        color: #fff;
+      }
+      .row-actions {
+        display: none;
+      }
+      .order-summary.edit-mode .row-actions {
+        display: flex;
+      }
+      .order-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 13px;
+        padding: 8px 0;
+        border-bottom: 1px dashed var(--border);
+      }
+      .order-row:last-child {
+        border-bottom: none;
+      }
+      .order-row .name {
+        font-weight: 600;
+      }
+      .order-row .note {
+        color: var(--gray);
+        font-size: 12px;
+      }
+      .order-row-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+      }
+      .item-status {
+        display: inline-block;
+        font-size: 11px;
+        font-weight: 700;
+        padding: 2px 8px;
+        border-radius: 8px;
+        margin-top: 4px;
+      }
+      .item-status.pending {
+        background: #fef3c7;
+        color: #92400e;
+      }
+      .item-status.done {
+        background: #dcfce7;
+        color: #15803d;
+      }
+      .item-status.problem {
+        background: #fee2e2;
+        color: #b91c1c;
+      }
+
+      .row-actions {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 8px;
+      }
+      .row-actions button {
+        border: none;
+        background: none;
+        font-size: 12px;
+        font-weight: 700;
+        padding: 4px 8px;
+        border-radius: 6px;
+      }
+      .edit-btn {
+        color: var(--blue);
+        background: var(--blue-light) !important;
+      }
+      .remove-btn {
+        color: #b91c1c;
+        background: #fee2e2 !important;
+      }
+      .replace-btn {
+        color: #fff !important;
+        background: #ef4444 !important;
+      }
+
+      .problem-note {
+        font-size: 12px;
+        color: #b91c1c;
+        margin-top: 4px;
+      }
+      .qty-control {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .qty-control button {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        border: 1px solid var(--blue);
+        background: var(--blue-light);
+        color: var(--blue);
+        font-weight: 700;
+        font-size: 14px;
+      }
+
+      /* TOTAL + CHECKOUT (sticky bottom) */
+      .checkout-bar {
+        position: sticky;
+        bottom: 0;
+        background: #fff;
+        border-top: 1px solid var(--border);
+        padding: 12px 16px;
+        box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+      }
+      .total-row {
+        display: flex;
+        justify-content: space-between;
+        font-size: 14px;
+        margin-bottom: 10px;
+      }
+      .total-row .label {
+        color: var(--gray);
+      }
+      .total-row .value {
+        font-size: 18px;
+        font-weight: 800;
+        color: var(--blue);
+      }
+      .checkout-btn {
+        width: 100%;
+        background: var(--blue);
+        color: #fff;
+        border: none;
+        padding: 14px;
+        border-radius: 12px;
+        font-size: 15px;
+        font-weight: 700;
+        letter-spacing: 0.3px;
+      }
+      .checkout-btn:active {
+        background: var(--blue-dark);
+      }
+
+      /* STATUS BUTTONS */
+      .status-row {
+        display: flex;
+        gap: 10px;
+        margin-top: 10px;
+      }
+      .status-btn {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        padding: 11px 8px;
+        border-radius: 12px;
+        border: 1.5px solid var(--blue);
+        background: #fff;
+        color: var(--blue);
+        font-size: 13px;
+        font-weight: 700;
+      }
+      .status-btn .icon {
+        font-size: 14px;
+      }
+      .status-btn.active {
+        background: #16a34a;
+        border-color: #16a34a;
+        color: #fff;
+      }
+
+      .badge {
+        display: inline-block;
+        background: var(--blue-light);
+        color: var(--blue);
+        font-size: 11px;
+        font-weight: 700;
+        padding: 2px 8px;
+        border-radius: 10px;
+        margin-left: 6px;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>🧋 Order Đồ Uống</h1>
+      <div class="table-info">
+        <span>Nhân viên: Minh</span>
+        <select>
+          <option>Bàn 01</option>
+          <option>Bàn 02</option>
+          <option>Bàn 03</option>
+          <option>Mang đi</option>
+        </select>
+      </div>
+    </header>
+
+    <div class="tabs">
+      <div class="tab active">Trà sữa</div>
+      <div class="tab">Trà trái cây</div>
+      <div class="tab">Cà phê</div>
+      <div class="tab">Topping</div>
+      <div class="tab">Đá xay</div>
+    </div>
+
+    <div class="menu">
+      <div class="item-card">
+        <img src="ts-truyen-thong.png" alt="" />
+        <div class="item-info">
+          <div class="name">Trà sữa truyền thống</div>
+          <div class="price">29.000đ</div>
+        </div>
+        <button class="add-btn">+</button>
+      </div>
+
+      <div class="item-card">
+        <img src="Trà-sữa-Trân-châu-đen-1.png" alt="" />
+        <div class="item-info">
+          <div class="name">Trà sữa trân châu đường đen</div>
+          <div class="price">35.000đ</div>
+        </div>
+        <button class="add-btn">+</button>
+      </div>
+
+      <div class="item-card">
+        <img src="ts-matcha.png" alt="" />
+        <div class="item-info">
+          <div class="name">Trà sữa matcha</div>
+          <div class="price">32.000đ</div>
+        </div>
+        <button class="add-btn">+</button>
+      </div>
+
+      <div class="item-card out-of-stock">
+        <img src="Trà-sữa-Khoai-môn.png" alt="" />
+        <div class="item-info">
+          <div class="name">Trà sữa khoai môn</div>
+          <div class="price">32.000đ</div>
+          <span class="out-of-stock-badge">Hết hàng</span>
+        </div>
+        <button class="add-btn" disabled>+</button>
+      </div>
+    </div>
+
+    <div class="order-summary" id="orderSummary">
+      <h2>
+        Đơn hiện tại <span class="badge">3 món</span>
+        <button
+          class="edit-order-btn"
+          id="editOrderBtn"
+          onclick="toggleEditMode()"
+        >
+          ✎ Sửa đơn hàng
+        </button>
+      </h2>
+
+      <div class="order-row">
+        <div class="order-row-top">
+          <div>
+            <div class="name">Trà sữa truyền thống</div>
+            <div class="note">Size L, 50% đường, ít đá</div>
+            <span class="item-status done">Đã làm xong</span>
+          </div>
+          <div class="qty-control">
+            <button>-</button>
+            <span>1</span>
+            <button>+</button>
+          </div>
+        </div>
+        <div class="row-actions">
+          <button class="edit-btn">✎ Sửa</button>
+          <button class="remove-btn">Xoá</button>
+        </div>
+      </div>
+
+      <div class="order-row">
+        <div class="order-row-top">
+          <div>
+            <div class="name">Trà sữa trân châu đường đen</div>
+            <div class="note">Size M, 70% đường</div>
+            <span class="item-status problem">Hết nguyên liệu</span>
+            <div class="problem-note">⚠ Bếp báo: hết trân châu đường đen</div>
+          </div>
+          <div class="qty-control">
+            <button>-</button>
+            <span>2</span>
+            <button>+</button>
+          </div>
+        </div>
+        <div class="row-actions">
+          <button class="replace-btn">Đổi món khác</button>
+          <button class="remove-btn">Huỷ món này</button>
+        </div>
+      </div>
+
+      <div class="order-row">
+        <div class="order-row-top">
+          <div>
+            <div class="name">Trân châu trắng (topping)</div>
+            <div class="note">Thêm</div>
+            <span class="item-status pending">Đang chờ pha chế</span>
+          </div>
+          <div class="qty-control">
+            <button>-</button>
+            <span>1</span>
+            <button>+</button>
+          </div>
+        </div>
+        <div class="row-actions">
+          <button class="edit-btn">✎ Sửa</button>
+          <button class="remove-btn">Xoá</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="checkout-bar">
+      <div class="total-row">
+        <span class="label">Tổng cộng</span>
+        <span class="value">106.000đ</span>
+      </div>
+      <button class="checkout-btn">Gửi đơn xuống bếp</button>
+
+      <div class="status-row">
+        <button
+          class="status-btn done"
+          id="doneBtn"
+          onclick="toggleStatus('doneBtn')"
+        >
+          <span class="icon">✓</span> Đã làm xong
+        </button>
+        <button
+          class="status-btn paid"
+          id="paidBtn"
+          onclick="toggleStatus('paidBtn')"
+        >
+          <span class="icon">💵</span> Đã thanh toán
+        </button>
+      </div>
+    </div>
+
+    <script>
+      function toggleStatus(id) {
+        document.getElementById(id).classList.toggle("active");
+      }
+      function toggleEditMode() {
+        document.getElementById("orderSummary").classList.toggle("edit-mode");
+        document.getElementById("editOrderBtn").classList.toggle("active");
+      }
+    </script>
+  </body>
+</html>
