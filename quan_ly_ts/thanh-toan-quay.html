@@ -1,0 +1,912 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Thanh toán quầy — Milky Tea House</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+  :root{
+    --bg: #EAF4FC;
+    --bg-deep: #DCEBF9;
+    --white: #FFFFFF;
+    --blue-primary: #5B9BD5;
+    --blue-deep: #2E6DA4;
+    --blue-pale: #D6EAF8;
+    --ink: #1F3A52;
+    --ink-soft: #5E7A90;
+    --success: #2FA57A;
+    --success-pale: #E1F4EC;
+    --line: #C8DFF0;
+    --radius: 20px;
+    --shadow: 0 20px 45px -25px rgba(46, 109, 164, 0.35);
+  }
+
+  *{ box-sizing: border-box; }
+
+  html, body{
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    background:
+      radial-gradient(circle at 12% 8%, var(--bg-deep), transparent 45%),
+      radial-gradient(circle at 88% 92%, var(--bg-deep), transparent 40%),
+      var(--bg);
+    font-family: 'Be Vietnam Pro', sans-serif;
+    color: var(--ink);
+  }
+
+  .num{
+    font-family: 'Space Mono', monospace;
+  }
+
+  button{ font-family: inherit; }
+
+  *:focus-visible{
+    outline: 3px solid var(--blue-deep);
+    outline-offset: 2px;
+  }
+
+  .screen{
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    padding: 28px clamp(16px, 4vw, 56px) 40px;
+  }
+
+  /* ---------- Header ---------- */
+  .topbar{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 26px;
+    flex-wrap: wrap;
+    gap: 14px;
+  }
+
+  .brand{
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .brand-mark{
+    width: 44px;
+    height: 44px;
+    border-radius: 14px;
+    background: linear-gradient(155deg, var(--blue-primary), var(--blue-deep));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: var(--shadow);
+    flex-shrink: 0;
+  }
+
+  .brand-mark svg{ width: 24px; height: 24px; }
+
+  .brand-name{
+    font-weight: 800;
+    font-size: 18px;
+    letter-spacing: 0.01em;
+    line-height: 1.1;
+  }
+
+  .brand-sub{
+    font-size: 12.5px;
+    color: var(--ink-soft);
+    font-weight: 500;
+  }
+
+  .order-meta{
+    display: flex;
+    gap: 22px;
+    align-items: center;
+    background: var(--white);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 9px 22px;
+    box-shadow: var(--shadow);
+  }
+
+  .order-meta .item{ text-align: left; }
+  .order-meta .item + .item{ border-left: 1px solid var(--line); padding-left: 22px; }
+
+  .order-meta .label{
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-soft);
+    font-weight: 600;
+    display: block;
+    margin-bottom: 2px;
+  }
+
+  .order-meta .value{
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--blue-deep);
+  }
+
+  /* ---------- Main grid ---------- */
+  .grid{
+    display: grid;
+    grid-template-columns: 1.15fr 0.85fr;
+    gap: 24px;
+    align-items: start;
+    flex: 1;
+  }
+
+  @media (max-width: 860px){
+    .grid{ grid-template-columns: 1fr; }
+  }
+
+  /* ---------- Receipt card ---------- */
+  .receipt{
+    background: var(--white);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 28px 26px 34px;
+    position: relative;
+  }
+
+  .receipt-head{
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 18px;
+  }
+
+  .receipt-title{
+    font-weight: 800;
+    font-size: 17px;
+  }
+
+  .receipt-title span{
+    display: block;
+    font-weight: 500;
+    font-size: 12.5px;
+    color: var(--ink-soft);
+    margin-top: 3px;
+  }
+
+  .pill{
+    background: var(--blue-pale);
+    color: var(--blue-deep);
+    font-weight: 700;
+    font-size: 12px;
+    padding: 5px 12px;
+    border-radius: 999px;
+  }
+
+  .items{
+    list-style: none;
+    margin: 0 0 18px;
+    padding: 0;
+    border-top: 1px dashed var(--line);
+  }
+
+  .items li{
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 4px 12px;
+    padding: 14px 0;
+    border-bottom: 1px dashed var(--line);
+    align-items: center;
+  }
+
+  .items .qty{
+    background: var(--blue-deep);
+    color: var(--white);
+    font-family: 'Space Mono', monospace;
+    font-weight: 700;
+    font-size: 12.5px;
+    width: 28px;
+    height: 28px;
+    border-radius: 9px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .items .name{
+    font-weight: 600;
+    font-size: 14.5px;
+    line-height: 1.3;
+  }
+
+  .items .variant{
+    display: block;
+    font-weight: 400;
+    font-size: 12px;
+    color: var(--ink-soft);
+    margin-top: 2px;
+  }
+
+  .items .price{
+    font-family: 'Space Mono', monospace;
+    font-weight: 700;
+    font-size: 14px;
+    white-space: nowrap;
+  }
+
+  .totals{
+    padding-top: 4px;
+  }
+
+  .totals .row{
+    display: flex;
+    justify-content: space-between;
+    font-size: 14px;
+    color: var(--ink-soft);
+    padding: 6px 0;
+  }
+
+  .totals .row .num{ color: var(--ink); font-weight: 600; }
+
+  .totals .row.discount .num{ color: var(--success); }
+
+  .totals .grand{
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-top: 10px;
+    padding-top: 14px;
+    border-top: 2px solid var(--ink);
+  }
+
+  .totals .grand .label{
+    font-weight: 800;
+    font-size: 15.5px;
+  }
+
+  .totals .grand .num{
+    font-family: 'Space Mono', monospace;
+    font-weight: 700;
+    font-size: 26px;
+    color: var(--blue-deep);
+  }
+
+  /* torn ticket edge */
+  .receipt::after{
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -12px;
+    height: 24px;
+    background:
+      linear-gradient(135deg, transparent 51%, var(--bg) 51%) 0 -6px / 20px 24px repeat-x,
+      linear-gradient(-135deg, transparent 51%, var(--bg) 51%) 0 -6px / 20px 24px repeat-x,
+      var(--white);
+      -webkit-mask-image: linear-gradient(#000, transparent 55%);
+      mask-image: linear-gradient(#000, transparent 55%);
+  }
+
+  /* ---------- Payment card ---------- */
+  .payment{
+    background: var(--white);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 26px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  .tabs{
+    display: flex;
+    background: var(--bg-deep);
+    border-radius: 14px;
+    padding: 5px;
+    gap: 4px;
+  }
+
+  .tab{
+    flex: 1;
+    border: none;
+    background: transparent;
+    padding: 11px 10px;
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 13.5px;
+    color: var(--ink-soft);
+    cursor: pointer;
+    transition: background 0.18s ease, color 0.18s ease, box-shadow 0.18s ease;
+  }
+
+  .tab.active{
+    background: var(--white);
+    color: var(--blue-deep);
+    box-shadow: 0 6px 16px -8px rgba(46,109,164,0.45);
+  }
+
+  .pane{ display: none; }
+  .pane.active{ display: flex; flex-direction: column; align-items: center; gap: 14px; }
+
+  /* QR "lid" framing */
+  .qr-wrap{
+    position: relative;
+    width: 208px;
+    height: 208px;
+    border-radius: 22px;
+    background: var(--white);
+    border: 3px dashed var(--blue-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 14px;
+  }
+
+  .qr-wrap::before{
+    content: "";
+    position: absolute;
+    top: -3px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 34px;
+    height: 6px;
+    border-radius: 0 0 6px 6px;
+    background: var(--blue-primary);
+  }
+
+  #qrcode{
+    width: 168px;
+    height: 168px;
+    border-radius: 10px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  #qrcode img, #qrcode canvas{
+    border-radius: 8px;
+  }
+
+  .bank-info{
+    width: 100%;
+    background: var(--blue-pale);
+    border-radius: 14px;
+    padding: 14px 16px;
+    font-size: 13px;
+  }
+
+  .bank-info .row{
+    display: flex;
+    justify-content: space-between;
+    padding: 4px 0;
+    gap: 10px;
+  }
+
+  .bank-info .row span:first-child{ color: var(--ink-soft); }
+  .bank-info .row span:last-child{ font-weight: 700; text-align: right; }
+  .bank-info .row .num{ font-family: 'Space Mono', monospace; }
+
+  .qr-note{
+    font-size: 12px;
+    color: var(--ink-soft);
+    text-align: center;
+    line-height: 1.5;
+  }
+
+  .cash-note{
+    text-align: center;
+    padding: 30px 10px 10px;
+  }
+
+  .cash-note .amount{
+    font-family: 'Space Mono', monospace;
+    font-weight: 700;
+    font-size: 32px;
+    color: var(--blue-deep);
+    margin: 6px 0 10px;
+  }
+
+  .cash-note p{
+    margin: 0;
+    font-size: 13px;
+    color: var(--ink-soft);
+    line-height: 1.6;
+  }
+
+  /* ---------- Transfer status bar ---------- */
+  .transfer-status{
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    border-radius: 14px;
+    background: #FDF1DA;
+    border: 1px solid #F3D9A0;
+    cursor: pointer;
+    text-align: left;
+    transition: background 0.18s ease, border-color 0.18s ease, transform 0.12s ease;
+  }
+
+  .transfer-status:hover{ transform: translateY(-1px); }
+  .transfer-status:active{ transform: translateY(0); }
+
+  .transfer-status[data-state="paid"]{
+    background: var(--success-pale);
+    border-color: #A8E0C6;
+  }
+
+  .status-dot{
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+    background: #E0A426;
+    flex-shrink: 0;
+    box-shadow: 0 0 0 4px rgba(224, 164, 38, 0.18);
+    transition: background 0.18s ease, box-shadow 0.18s ease;
+  }
+
+  .transfer-status[data-state="paid"] .status-dot{
+    background: var(--success);
+    box-shadow: 0 0 0 4px rgba(47, 165, 122, 0.18);
+  }
+
+  .status-text{
+    flex: 1;
+    min-width: 0;
+  }
+
+  .status-label{
+    display: block;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-weight: 700;
+    color: #B4790E;
+  }
+
+  .transfer-status[data-state="paid"] .status-label{ color: var(--success); }
+
+  .status-value{
+    display: block;
+    font-weight: 700;
+    font-size: 13.5px;
+    color: var(--ink);
+    margin-top: 1px;
+  }
+
+  .status-hint{
+    font-size: 11px;
+    font-weight: 600;
+    color: #B4790E;
+    flex-shrink: 0;
+  }
+
+  .transfer-status[data-state="paid"] .status-hint{ color: var(--success); }
+
+  /* ---------- Cash confirm checkbox ---------- */
+  .cash-check{
+    width: 100%;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 12px 14px;
+    border-radius: 14px;
+    background: var(--blue-pale);
+    cursor: pointer;
+    font-size: 13px;
+    line-height: 1.5;
+  }
+
+  .cash-check input{
+    width: 18px;
+    height: 18px;
+    margin-top: 1px;
+    accent-color: var(--blue-deep);
+    flex-shrink: 0;
+    cursor: pointer;
+  }
+
+  .cash-check strong{ color: var(--blue-deep); }
+
+  /* ---------- Staff notes ---------- */
+  .notes-block{
+    width: 100%;
+    background: var(--bg-deep);
+    border-radius: 14px;
+    padding: 12px 14px 10px;
+  }
+
+  .notes-block label{
+    display: block;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-weight: 700;
+    color: var(--ink-soft);
+    margin-bottom: 6px;
+  }
+
+  .notes-block textarea{
+    width: 100%;
+    border: none;
+    background: transparent;
+    resize: vertical;
+    min-height: 44px;
+    font-family: inherit;
+    font-size: 13.5px;
+    color: var(--ink);
+    line-height: 1.5;
+    padding: 0;
+  }
+
+  .notes-block textarea::placeholder{ color: #93AAC0; }
+
+  /* ---------- Lock hint ---------- */
+  .lock-hint{
+    margin: -6px 0 0;
+    text-align: center;
+    font-size: 12px;
+    font-weight: 600;
+    color: #B4790E;
+  }
+
+  .lock-hint.is-hidden{ display: none; }
+
+  .confirm-btn:disabled{
+    background: #C3D3E1;
+    box-shadow: none;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  .cash-icon{
+    width: 56px; height: 56px;
+    margin: 0 auto 8px;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--blue-pale);
+    border-radius: 50%;
+  }
+
+  /* confirm button */
+  .confirm-btn{
+    margin-top: auto;
+    width: 100%;
+    border: none;
+    border-radius: 16px;
+    padding: 18px 20px;
+    font-weight: 800;
+    font-size: 16px;
+    letter-spacing: 0.01em;
+    color: var(--white);
+    background: linear-gradient(155deg, var(--blue-primary), var(--blue-deep));
+    box-shadow: 0 16px 30px -14px rgba(46,109,164,0.55);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    transition: transform 0.12s ease, box-shadow 0.12s ease;
+  }
+
+  .confirm-btn:hover:not(:disabled){ transform: translateY(-1px); }
+  .confirm-btn:active{ transform: translateY(0); box-shadow: 0 8px 18px -12px rgba(46,109,164,0.55); }
+
+  .confirm-btn.paid{
+    background: linear-gradient(155deg, var(--success), #22855F);
+  }
+
+  .confirm-btn svg{ width: 20px; height: 20px; flex-shrink: 0; }
+
+  /* paid overlay state */
+  .payment.is-paid .tabs,
+  .payment.is-paid .pane,
+  .payment.is-paid .notes-block,
+  .payment.is-paid .lock-hint{ display: none; }
+
+  .paid-state{
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 10px;
+    padding: 20px 10px 8px;
+  }
+
+  .payment.is-paid .paid-state{ display: flex; }
+
+  .paid-badge{
+    width: 78px; height: 78px;
+    border-radius: 50%;
+    background: var(--success-pale);
+    display: flex; align-items: center; justify-content: center;
+    animation: pop 0.32s cubic-bezier(.34,1.56,.64,1);
+  }
+
+  .paid-badge svg{ width: 38px; height: 38px; }
+
+  @keyframes pop{
+    0%{ transform: scale(0.6); opacity: 0; }
+    100%{ transform: scale(1); opacity: 1; }
+  }
+
+  .paid-state h3{
+    margin: 4px 0 0;
+    font-size: 17px;
+    font-weight: 800;
+    color: var(--success);
+  }
+
+  .paid-state p{
+    margin: 0;
+    font-size: 13px;
+    color: var(--ink-soft);
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .paid-badge{ animation: none; }
+    .confirm-btn{ transition: none; }
+  }
+</style>
+</head>
+<body>
+<div class="screen">
+
+  <div class="topbar">
+    <div class="brand">
+      <div class="brand-mark">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M6 8h12l-1.2 11.2a2 2 0 0 1-2 1.8H9.2a2 2 0 0 1-2-1.8L6 8Z" stroke="white" stroke-width="1.8" stroke-linejoin="round"/>
+          <path d="M4.5 8h15" stroke="white" stroke-width="1.8" stroke-linecap="round"/>
+          <path d="M9 5.2c0-1 .8-1.7 1.8-1.7h2.4c1 0 1.8.8 1.8 1.7v2.3H9V5.2Z" stroke="white" stroke-width="1.8" stroke-linejoin="round"/>
+          <circle cx="10.3" cy="14" r="1" fill="white"/>
+          <circle cx="13.7" cy="16.5" r="1" fill="white"/>
+        </svg>
+      </div>
+      <div>
+        <div class="brand-name">Milky Tea House</div>
+        <div class="brand-sub">Thanh toán tại quầy</div>
+      </div>
+    </div>
+
+    <div class="order-meta">
+      <div class="item">
+        <span class="label">Mã đơn</span>
+        <span class="value num">#DH-0842</span>
+      </div>
+      <div class="item">
+        <span class="label">Giờ đặt</span>
+        <span class="value num">14:26</span>
+      </div>
+      <div class="item">
+        <span class="label">Thu ngân</span>
+        <span class="value">Quầy 02</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid">
+
+    <!-- RECEIPT -->
+    <div class="receipt">
+      <div class="receipt-head">
+        <div class="receipt-title">
+          Chi tiết đơn hàng
+          <span>3 món · Mang đi</span>
+        </div>
+        <div class="pill">Chờ thanh toán</div>
+      </div>
+
+      <ul class="items">
+        <li>
+          <span class="qty">2</span>
+          <span class="name">Trà sữa trân châu đường đen
+            <span class="variant">Size L · 70% đường · Đá ít</span>
+          </span>
+          <span class="price num">90.000đ</span>
+        </li>
+        <li>
+          <span class="qty">1</span>
+          <span class="name">Hồng trà macchiato
+            <span class="variant">Size M · 50% đường</span>
+          </span>
+          <span class="price num">35.000đ</span>
+        </li>
+        <li>
+          <span class="qty">1</span>
+          <span class="name">Topping trân châu trắng
+            <span class="variant">Thêm vào ly #1</span>
+          </span>
+          <span class="price num">5.000đ</span>
+        </li>
+      </ul>
+
+      <div class="totals">
+        <div class="row">
+          <span>Tạm tính</span>
+          <span class="num">130.000đ</span>
+        </div>
+        <div class="row discount">
+          <span>Ưu đãi thành viên</span>
+          <span class="num">−10.000đ</span>
+        </div>
+        <div class="grand">
+          <span class="label">Tổng cộng</span>
+          <span class="num">120.000đ</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAYMENT -->
+    <div class="payment" id="paymentCard">
+
+      <div class="tabs">
+        <button class="tab active" data-tab="qr" type="button">Chuyển khoản QR</button>
+        <button class="tab" data-tab="cash" type="button">Tiền mặt</button>
+      </div>
+
+      <div class="pane active" id="pane-qr">
+        <div class="qr-wrap">
+          <div id="qrcode"></div>
+        </div>
+        <div class="bank-info">
+          <div class="row"><span>Ngân hàng</span><span>MB Bank</span></div>
+          <div class="row"><span>Chủ tài khoản</span><span>QUAN TRA SUA MILKY</span></div>
+          <div class="row"><span>Số tài khoản</span><span class="num">0123 456 789</span></div>
+          <div class="row"><span>Nội dung CK</span><span class="num">DH0842</span></div>
+        </div>
+        <p class="qr-note">Khách quét mã để chuyển khoản đúng số tiền<br><strong>120.000đ</strong> — hệ thống sẽ tự khớp theo nội dung.</p>
+
+        <button class="transfer-status" id="transferStatus" type="button" data-state="pending">
+          <span class="status-dot"></span>
+          <span class="status-text">
+            <span class="status-label">Trạng thái chuyển khoản</span>
+            <span class="status-value" id="transferStatusValue">Chưa chuyển khoản</span>
+          </span>
+          <span class="status-hint" id="transferStatusHint">Chạm để xác nhận</span>
+        </button>
+      </div>
+
+      <div class="pane" id="pane-cash">
+        <div class="cash-note">
+          <div class="cash-icon">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect x="2.5" y="6.5" width="19" height="12" rx="2.2" stroke="#2E6DA4" stroke-width="1.6"/>
+              <circle cx="12" cy="12.5" r="2.6" stroke="#2E6DA4" stroke-width="1.6"/>
+            </svg>
+          </div>
+          <div>Số tiền cần thu</div>
+          <div class="amount num">120.000đ</div>
+          <p>Kiểm tra đủ tiền mặt từ khách<br>trước khi xác nhận đơn.</p>
+        </div>
+
+        <label class="cash-check">
+          <input type="checkbox" id="cashCheckbox">
+          <span>Đã nhận đủ <strong>120.000đ</strong> tiền mặt từ khách</span>
+        </label>
+      </div>
+
+      <div class="notes-block">
+        <label for="staffNote">Ghi chú của nhân viên</label>
+        <textarea id="staffNote" rows="2" placeholder="VD: khách hẹn chuyển khoản sau, thiếu 5k tiền lẻ, đổi món tại quầy..."></textarea>
+      </div>
+
+      <p class="lock-hint" id="lockHint">Tick đã nhận tiền mặt hoặc xác nhận chuyển khoản để mở khóa nút bên dưới</p>
+
+      <div class="paid-state">
+        <div class="paid-badge">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M5 13l4.5 4.5L19 8" stroke="#2FA57A" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <h3>Đã thanh toán</h3>
+        <p>Đơn #DH-0842 · 120.000đ · 14:26</p>
+      </div>
+
+      <button class="confirm-btn" id="confirmBtn" type="button" disabled>
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M5 13l4.5 4.5L19 8" stroke="white" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span id="confirmLabel">Xác nhận đã thanh toán</span>
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  // Generate demo QR (VietQR-style payload placeholder)
+  var qrPayload = "MBBANK|0123456789|QUAN TRA SUA MILKY|120000|DH0842";
+  new QRCode(document.getElementById("qrcode"), {
+    text: qrPayload,
+    width: 168,
+    height: 168,
+    colorDark: "#2E6DA4",
+    colorLight: "#ffffff",
+    correctLevel: QRCode.CorrectLevel.M
+  });
+
+  var confirmBtn = document.getElementById("confirmBtn");
+  var confirmLabel = document.getElementById("confirmLabel");
+  var paymentCard = document.getElementById("paymentCard");
+  var lockHint = document.getElementById("lockHint");
+  var transferStatus = document.getElementById("transferStatus");
+  var transferStatusValue = document.getElementById("transferStatusValue");
+  var transferStatusHint = document.getElementById("transferStatusHint");
+  var cashCheckbox = document.getElementById("cashCheckbox");
+
+  var paid = false;
+  var transferConfirmed = false;
+  var cashConfirmed = false;
+
+  function getActiveTab(){
+    return document.querySelector(".tab.active").dataset.tab;
+  }
+
+  function updateLockState(){
+    if (paid) return; // paid-state hides these controls anyway
+
+    var ready = getActiveTab() === "qr" ? transferConfirmed : cashConfirmed;
+    confirmBtn.disabled = !ready;
+
+    if (ready){
+      lockHint.classList.add("is-hidden");
+    } else {
+      lockHint.classList.remove("is-hidden");
+      lockHint.textContent = getActiveTab() === "qr"
+        ? "Xác nhận đã chuyển khoản để mở khóa nút bên dưới"
+        : "Tick đã nhận đủ tiền mặt để mở khóa nút bên dưới";
+    }
+  }
+
+  // Tab switching
+  var tabs = document.querySelectorAll(".tab");
+  tabs.forEach(function(tab){
+    tab.addEventListener("click", function(){
+      tabs.forEach(function(t){ t.classList.remove("active"); });
+      document.querySelectorAll(".pane").forEach(function(p){ p.classList.remove("active"); });
+      tab.classList.add("active");
+      document.getElementById("pane-" + tab.dataset.tab).classList.add("active");
+      updateLockState();
+    });
+  });
+
+  // Transfer status toggle
+  transferStatus.addEventListener("click", function(){
+    transferConfirmed = !transferConfirmed;
+    transferStatus.dataset.state = transferConfirmed ? "paid" : "pending";
+    transferStatusValue.textContent = transferConfirmed ? "Đã chuyển khoản" : "Chưa chuyển khoản";
+    transferStatusHint.textContent = transferConfirmed ? "Chạm để hủy" : "Chạm để xác nhận";
+    updateLockState();
+  });
+
+  // Cash checkbox
+  cashCheckbox.addEventListener("change", function(){
+    cashConfirmed = cashCheckbox.checked;
+    updateLockState();
+  });
+
+  // Confirm payment
+  confirmBtn.addEventListener("click", function(){
+    paid = !paid;
+    paymentCard.classList.toggle("is-paid", paid);
+    confirmBtn.classList.toggle("paid", paid);
+    confirmLabel.textContent = paid ? "Hoàn tất — Mở đơn mới" : "Xác nhận đã thanh toán";
+
+    if (!paid){
+      // reset for a fresh order
+      transferConfirmed = false;
+      cashConfirmed = false;
+      transferStatus.dataset.state = "pending";
+      transferStatusValue.textContent = "Chưa chuyển khoản";
+      transferStatusHint.textContent = "Chạm để xác nhận";
+      cashCheckbox.checked = false;
+      document.getElementById("staffNote").value = "";
+      updateLockState();
+    }
+  });
+
+  updateLockState();
+</script>
+
+</body>
+</html>
