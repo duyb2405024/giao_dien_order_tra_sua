@@ -1,0 +1,866 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kho &amp; Doanh Thu — Trà Sữa</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --cream:      #EEF4FE;
+    --cream-2:    #FFFFFF;
+    --ink:        #16233A;
+    --ink-soft:   #647289;
+    --caramel:    #2563EB;
+    --caramel-d:  #1D4ED8;
+    --taro:       #0EA5E9;
+    --taro-d:     #0284C7;
+    --matcha:     #1D9A6C;
+    --pearl:      #16233A;
+    --line:       #DCE6F5;
+    --danger:     #E0503A;
+    --shadow:     0 8px 22px rgba(37,99,235,0.08);
+    --radius:     18px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--cream);
+    color:var(--ink);
+    font-family:'Be Vietnam Pro', 'Segoe UI', sans-serif;
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+  }
+  .app{
+    max-width:480px;
+    margin:0 auto;
+    padding:20px 16px 100px;
+    position:relative;
+  }
+
+  /* ---------- Header ---------- */
+  .header{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    padding:6px 4px 18px;
+  }
+  .cup-icon{flex-shrink:0;}
+  .header h1{
+    font-family:'Baloo 2', sans-serif;
+    font-size:21px;
+    font-weight:700;
+    margin:0;
+    line-height:1.15;
+    color:var(--ink);
+  }
+  .header p{
+    margin:2px 0 0;
+    font-size:12.5px;
+    color:var(--ink-soft);
+  }
+
+  /* ---------- Tabs ---------- */
+  .tabbar{
+    position:relative;
+    display:flex;
+    background:var(--cream-2);
+    border:1px solid var(--line);
+    border-radius:999px;
+    padding:5px;
+    margin-bottom:22px;
+    box-shadow:var(--shadow);
+  }
+  .tab{
+    flex:1;
+    z-index:2;
+    border:none;
+    background:transparent;
+    padding:11px 10px;
+    font-family:'Be Vietnam Pro',sans-serif;
+    font-weight:600;
+    font-size:14.5px;
+    color:var(--ink-soft);
+    cursor:pointer;
+    border-radius:999px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:7px;
+    transition:color .25s ease;
+  }
+  .tab.active{color:#fff;}
+  .tab .dot{width:6px;height:6px;border-radius:50%;background:currentColor;opacity:.55;}
+  .tab-indicator{
+    position:absolute;
+    top:5px; bottom:5px; left:5px;
+    width:calc(50% - 5px);
+    border-radius:999px;
+    background:var(--caramel);
+    transition:transform .32s cubic-bezier(.65,0,.35,1), background .32s ease;
+    z-index:1;
+  }
+  .tab-indicator.to-revenue{
+    transform:translateX(100%);
+    background:var(--taro);
+  }
+
+  .view{display:none;}
+  .view.active{display:block; animation:fadeUp .28s ease;}
+  @keyframes fadeUp{from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);}}
+
+  /* ---------- Search (Kho) ---------- */
+  .search-wrap{
+    position:relative;
+    margin-bottom:16px;
+  }
+  .search-wrap input{
+    width:100%;
+    padding:13px 16px 13px 42px;
+    border-radius:14px;
+    border:1px solid var(--line);
+    background:var(--cream-2);
+    font-family:'Be Vietnam Pro',sans-serif;
+    font-size:14.5px;
+    color:var(--ink);
+    outline:none;
+    transition:border-color .2s ease, box-shadow .2s ease;
+  }
+  .search-wrap input:focus{
+    border-color:var(--caramel);
+    box-shadow:0 0 0 3px rgba(185,119,60,0.15);
+  }
+  .search-wrap svg{
+    position:absolute; left:14px; top:50%; transform:translateY(-50%);
+    color:var(--ink-soft);
+  }
+
+  .section-label{
+    font-size:11.5px;
+    text-transform:uppercase;
+    letter-spacing:.06em;
+    color:var(--ink-soft);
+    font-weight:600;
+    margin:18px 2px 8px;
+  }
+
+  /* ---------- Ingredient cards ---------- */
+  .ing-list{display:flex; flex-direction:column; gap:10px;}
+  .ing-card{
+    background:var(--cream-2);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:14px 14px 12px;
+    box-shadow:var(--shadow);
+    position:relative;
+    cursor:pointer;
+    transition:transform .15s ease;
+  }
+  .ing-card:active{transform:scale(0.985);}
+  .ing-top{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    margin-bottom:10px;
+  }
+  .ing-name{
+    font-family:'Baloo 2',sans-serif;
+    font-weight:600;
+    font-size:16px;
+    color:var(--ink);
+  }
+  .ing-unit{
+    font-size:11.5px;
+    color:var(--ink-soft);
+    font-weight:500;
+  }
+  .del-btn{
+    width:26px; height:26px;
+    border-radius:50%;
+    border:1px solid var(--line);
+    background:#fff;
+    color:var(--danger);
+    font-size:15px;
+    line-height:1;
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer;
+    flex-shrink:0;
+    transition:background .15s ease, transform .15s ease;
+  }
+  .del-btn:hover{background:#FBEDE8;}
+  .stat-row{display:flex; gap:8px;}
+  .stat{
+    flex:1;
+    background:var(--cream);
+    border-radius:10px;
+    padding:8px 6px;
+    text-align:center;
+  }
+  .stat .num{
+    font-family:'Baloo 2',sans-serif;
+    font-weight:700;
+    font-size:16px;
+  }
+  .stat.nhap .num{color:var(--matcha);}
+  .stat.xuat .num{color:var(--danger);}
+  .stat.ton .num{color:var(--caramel-d);}
+  .stat .lbl{font-size:10.5px; color:var(--ink-soft); margin-top:1px;}
+
+  .empty{
+    text-align:center;
+    padding:50px 20px 30px;
+    color:var(--ink-soft);
+  }
+  .empty svg{margin-bottom:14px; opacity:.8;}
+  .empty p{margin:0; font-size:14px; line-height:1.5;}
+  .empty b{color:var(--ink);}
+
+  /* ---------- Floating add button ---------- */
+  .fab{
+    position:fixed;
+    bottom:26px; left:50%;
+    transform:translateX(calc(-50% + 200px));
+    width:54px; height:54px;
+    border-radius:50%;
+    border:none;
+    background:var(--caramel);
+    color:#fff;
+    font-size:26px;
+    box-shadow:0 10px 24px rgba(138,90,42,0.35);
+    cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    z-index:40;
+    transition:background .25s ease, transform .15s ease;
+  }
+  .fab:active{transform:translateX(calc(-50% + 200px)) scale(0.92);}
+  .fab.revenue-fab{background:var(--taro); box-shadow:0 10px 24px rgba(107,79,135,0.35);}
+  @media(max-width:520px){
+    .fab{ right:22px; left:auto; transform:none; }
+    .fab:active{ transform:scale(0.92); }
+  }
+
+  /* ---------- Doanh thu view ---------- */
+  .date-card{
+    background:var(--cream-2);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:16px;
+    box-shadow:var(--shadow);
+    margin-bottom:18px;
+  }
+  .date-card label{
+    display:block;
+    font-size:11.5px;
+    text-transform:uppercase;
+    letter-spacing:.06em;
+    color:var(--ink-soft);
+    font-weight:600;
+    margin-bottom:8px;
+  }
+  .date-card input[type="date"]{
+    width:100%;
+    padding:12px 14px;
+    border-radius:12px;
+    border:1px solid var(--line);
+    background:var(--cream);
+    font-family:'Be Vietnam Pro',sans-serif;
+    font-size:14.5px;
+    color:var(--ink);
+    outline:none;
+  }
+  .date-card input[type="date"]:focus{
+    border-color:var(--taro);
+    box-shadow:0 0 0 3px rgba(138,109,168,0.15);
+  }
+
+  .summary-grid{
+    display:flex;
+    gap:12px;
+    margin-bottom:18px;
+  }
+  .summary-card{
+    flex:1;
+    background:linear-gradient(160deg, var(--cream-2), var(--cream));
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:18px 14px;
+    box-shadow:var(--shadow);
+    text-align:center;
+  }
+  .summary-card .big{
+    font-family:'Baloo 2',sans-serif;
+    font-weight:800;
+    font-size:24px;
+    color:var(--taro-d);
+    line-height:1.1;
+  }
+  .summary-card.money .big{color:var(--matcha); font-size:20px;}
+  .summary-card .cap{font-size:12px; color:var(--ink-soft); margin-top:6px; font-weight:500;}
+
+  .item-list{display:flex; flex-direction:column; gap:8px; margin-bottom:8px;}
+  .item-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    background:var(--cream-2);
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:11px 14px;
+  }
+  .item-row .iname{font-size:14px; font-weight:600;}
+  .item-row .isub{font-size:11.5px; color:var(--ink-soft); margin-top:1px;}
+  .item-row .iprice{font-size:14px; font-weight:600; color:var(--taro-d);}
+
+  .row-actions{
+    display:flex; gap:8px; margin-top:14px;
+  }
+  .btn-ghost{
+    flex:1;
+    padding:11px;
+    border-radius:12px;
+    border:1px solid var(--line);
+    background:var(--cream-2);
+    font-family:'Be Vietnam Pro',sans-serif;
+    font-weight:600;
+    font-size:13.5px;
+    color:var(--danger);
+    cursor:pointer;
+  }
+  .btn-ghost.edit{color:var(--taro-d);}
+
+  /* ---------- Modal ---------- */
+  .overlay{
+    position:fixed; inset:0;
+    background:rgba(43,33,27,0.45);
+    display:none;
+    align-items:flex-end;
+    justify-content:center;
+    z-index:100;
+  }
+  .overlay.show{display:flex;}
+  .modal{
+    background:var(--cream-2);
+    width:100%;
+    max-width:480px;
+    border-radius:24px 24px 0 0;
+    padding:22px 20px calc(22px + env(safe-area-inset-bottom));
+    max-height:88vh;
+    overflow-y:auto;
+    animation:slideUp .28s cubic-bezier(.32,.72,0,1);
+  }
+  @keyframes slideUp{from{transform:translateY(100%);} to{transform:translateY(0);}}
+  .modal-handle{
+    width:36px; height:4px; background:var(--line); border-radius:99px;
+    margin:0 auto 16px;
+  }
+  .modal h2{
+    font-family:'Baloo 2',sans-serif;
+    font-size:19px;
+    margin:0 0 16px;
+  }
+  .field{margin-bottom:14px;}
+  .field label{
+    display:block; font-size:12.5px; font-weight:600; color:var(--ink-soft); margin-bottom:6px;
+  }
+  .field input{
+    width:100%;
+    padding:11px 13px;
+    border-radius:11px;
+    border:1px solid var(--line);
+    background:var(--cream);
+    font-family:'Be Vietnam Pro',sans-serif;
+    font-size:14.5px;
+    color:var(--ink);
+    outline:none;
+  }
+  .field input:focus{border-color:var(--caramel); box-shadow:0 0 0 3px rgba(185,119,60,0.15);}
+  .field-row{display:flex; gap:10px;}
+  .field-row .field{flex:1;}
+
+  .item-editor{border:1px dashed var(--line); border-radius:14px; padding:12px; margin-bottom:14px;}
+  .item-editor-row{display:flex; gap:8px; margin-bottom:8px; align-items:center;}
+  .item-editor-row input{flex:1; min-width:0;}
+  .item-editor-row .mini{flex:0 0 70px;}
+  .rm-line{
+    width:30px; height:30px; flex-shrink:0;
+    border-radius:8px; border:1px solid var(--line); background:#fff;
+    color:var(--danger); font-size:15px; cursor:pointer;
+  }
+  .add-line{
+    width:100%; padding:9px; border-radius:10px; border:1px dashed var(--caramel);
+    background:transparent; color:var(--caramel-d); font-weight:600; font-size:13px; cursor:pointer;
+    font-family:'Be Vietnam Pro',sans-serif;
+  }
+  .live-total{
+    text-align:right; font-size:13px; color:var(--ink-soft); margin:-2px 0 14px;
+  }
+  .live-total b{color:var(--taro-d); font-size:14.5px;}
+
+  .modal-actions{display:flex; gap:10px; margin-top:6px;}
+  .btn-primary{
+    flex:2;
+    padding:13px;
+    border-radius:13px;
+    border:none;
+    background:var(--caramel);
+    color:#fff;
+    font-family:'Be Vietnam Pro',sans-serif;
+    font-weight:700;
+    font-size:14.5px;
+    cursor:pointer;
+  }
+  .btn-primary.taro{background:var(--taro);}
+  .btn-cancel{
+    flex:1;
+    padding:13px;
+    border-radius:13px;
+    border:1px solid var(--line);
+    background:transparent;
+    color:var(--ink-soft);
+    font-family:'Be Vietnam Pro',sans-serif;
+    font-weight:600;
+    font-size:14.5px;
+    cursor:pointer;
+  }
+
+  /* confirm popover */
+  .confirm-box{
+    position:fixed; inset:0; background:rgba(43,33,27,0.45);
+    display:none; align-items:center; justify-content:center; z-index:110;
+  }
+  .confirm-box.show{display:flex;}
+  .confirm-card{
+    background:var(--cream-2); border-radius:18px; padding:22px; width:88%; max-width:320px;
+    text-align:center; box-shadow:var(--shadow);
+  }
+  .confirm-card p{font-size:14px; margin:0 0 18px; color:var(--ink);}
+  .confirm-card .row{display:flex; gap:10px;}
+
+  .toast{
+    position:fixed; bottom:26px; left:50%; transform:translateX(-50%) translateY(20px);
+    background:var(--ink); color:#fff; padding:11px 20px; border-radius:99px;
+    font-size:13.5px; font-weight:500; opacity:0; pointer-events:none;
+    transition:opacity .25s ease, transform .25s ease; z-index:200;
+  }
+  .toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="header">
+    <svg class="cup-icon" width="34" height="34" viewBox="0 0 24 24" fill="none">
+      <path d="M5 8h14l-1.3 11.2a2 2 0 0 1-2 1.8H8.3a2 2 0 0 1-2-1.8L5 8z" fill="#fff" stroke="#16233A" stroke-width="1.3"/>
+      <path d="M4 8h16l.6-2.4A1 1 0 0 0 19.6 4.4H4.4a1 1 0 0 0-1 1.2L4 8z" fill="#2563EB" stroke="#16233A" stroke-width="1.3"/>
+      <circle cx="9" cy="13" r="1" fill="#16233A"/>
+      <circle cx="12.3" cy="15.5" r="1" fill="#16233A"/>
+      <circle cx="9.8" cy="17.5" r="1" fill="#16233A"/>
+      <circle cx="14" cy="12" r="1" fill="#16233A"/>
+    </svg>
+    <div>
+      <h1>Kho &amp; Doanh Thu</h1>
+      <p>Quản lý nguyên liệu và theo dõi bán hàng mỗi ngày</p>
+    </div>
+  </div>
+
+  <div class="tabbar">
+    <div class="tab-indicator" id="tabIndicator"></div>
+    <button class="tab active" id="tabKhoBtn" onclick="switchTab('kho')">
+      <span class="dot"></span>Kho
+    </button>
+    <button class="tab" id="tabDoanhThuBtn" onclick="switchTab('doanhthu')">
+      <span class="dot"></span>Doanh thu
+    </button>
+  </div>
+
+  <!-- ================= KHO VIEW ================= -->
+  <div class="view active" id="view-kho">
+    <div class="search-wrap">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+      <input type="text" id="searchInput" placeholder="Tìm nguyên liệu, ví dụ: trân châu..." oninput="renderIngredients()">
+    </div>
+    <div class="section-label" id="ingCountLabel">Nguyên liệu</div>
+    <div class="ing-list" id="ingList"></div>
+  </div>
+
+  <!-- ================= DOANH THU VIEW ================= -->
+  <div class="view" id="view-doanhthu">
+    <div class="date-card">
+      <label>Chọn ngày</label>
+      <input type="date" id="dateInput" onchange="renderRevenue()">
+    </div>
+    <div id="revenueContent"></div>
+  </div>
+
+  <button class="fab" id="fabKho" onclick="openIngModal()">+</button>
+  <button class="fab revenue-fab" id="fabDoanhThu" style="display:none;" onclick="openRevenueModal()">+</button>
+</div>
+
+<!-- ===== Modal: Thêm / sửa nguyên liệu ===== -->
+<div class="overlay" id="ingOverlay">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <h2 id="ingModalTitle">Thêm nguyên liệu</h2>
+    <input type="hidden" id="ingId">
+    <div class="field">
+      <label>Tên nguyên liệu</label>
+      <input type="text" id="ingName" placeholder="Ví dụ: Trân châu đen">
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label>Đơn vị</label>
+        <input type="text" id="ingUnit" placeholder="kg, lít, gói...">
+      </div>
+      <div class="field">
+        <label>Số lượng nhập</label>
+        <input type="number" id="ingNhap" placeholder="0" min="0">
+      </div>
+    </div>
+    <div class="field">
+      <label>Số lượng xuất</label>
+      <input type="number" id="ingXuat" placeholder="0" min="0">
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeIngModal()">Hủy</button>
+      <button class="btn-primary" onclick="saveIngredient()">Lưu</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Modal: Thêm / sửa doanh thu ngày ===== -->
+<div class="overlay" id="revOverlay">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <h2 id="revModalTitle">Doanh thu ngày</h2>
+    <div class="item-editor" id="lineEditor"></div>
+    <button class="add-line" onclick="addLine()">+ Thêm sản phẩm</button>
+    <div class="live-total">Tổng cộng: <b id="liveTotal">0 ₫</b></div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeRevenueModal()">Hủy</button>
+      <button class="btn-primary taro" onclick="saveRevenue()">Lưu</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Confirm xóa ===== -->
+<div class="confirm-box" id="confirmBox">
+  <div class="confirm-card">
+    <p id="confirmText">Xóa mục này?</p>
+    <div class="row">
+      <button class="btn-cancel" onclick="closeConfirm()">Hủy</button>
+      <button class="btn-primary" style="background:var(--danger)" id="confirmYesBtn">Xóa</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============ Helpers ============ */
+const $ = id => document.getElementById(id);
+let inventory = [];
+let revenueByDate = {}; // { 'YYYY-MM-DD': [{name, qty, price}] }
+let editingRevDate = null;
+let lineCounter = 0;
+
+function showToast(msg){
+  const t = $('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(showToast._tm);
+  showToast._tm = setTimeout(()=>t.classList.remove('show'), 1800);
+}
+function fmtVND(n){
+  return (n||0).toLocaleString('vi-VN') + ' ₫';
+}
+function todayStr(){
+  const d = new Date();
+  const off = d.getTimezoneOffset();
+  const local = new Date(d.getTime() - off*60000);
+  return local.toISOString().slice(0,10);
+}
+
+/* ============ Storage ============ */
+async function loadData(){
+  try{
+    const inv = await window.storage.get('inventory');
+    inventory = inv ? JSON.parse(inv.value) : null;
+  }catch(e){ inventory = null; }
+  if(!inventory){
+    inventory = [
+      {id:'i1', name:'Trân châu đen', unit:'kg', nhap:20, xuat:14},
+      {id:'i2', name:'Sữa tươi', unit:'lít', nhap:30, xuat:22},
+      {id:'i3', name:'Trà đen', unit:'gói', nhap:15, xuat:9},
+      {id:'i4', name:'Đường nước', unit:'lít', nhap:10, xuat:6}
+    ];
+    await saveInventory();
+  }
+  try{
+    const rev = await window.storage.get('revenue');
+    revenueByDate = rev ? JSON.parse(rev.value) : null;
+  }catch(e){ revenueByDate = null; }
+  if(!revenueByDate){
+    const t = todayStr();
+    revenueByDate = {
+      [t]: [
+        {name:'Trà sữa trân châu', qty:18, price:30000},
+        {name:'Trà đào cam sả', qty:12, price:35000},
+        {name:'Matcha đá xay', qty:7, price:40000}
+      ]
+    };
+    await saveRevenueStore();
+  }
+}
+async function saveInventory(){
+  try{ await window.storage.set('inventory', JSON.stringify(inventory)); }
+  catch(e){ console.error('Lỗi lưu kho', e); showToast('Không thể lưu dữ liệu'); }
+}
+async function saveRevenueStore(){
+  try{ await window.storage.set('revenue', JSON.stringify(revenueByDate)); }
+  catch(e){ console.error('Lỗi lưu doanh thu', e); showToast('Không thể lưu dữ liệu'); }
+}
+
+/* ============ Tabs ============ */
+function switchTab(name){
+  const ind = $('tabIndicator');
+  $('tabKhoBtn').classList.toggle('active', name==='kho');
+  $('tabDoanhThuBtn').classList.toggle('active', name==='doanhthu');
+  $('view-kho').classList.toggle('active', name==='kho');
+  $('view-doanhthu').classList.toggle('active', name==='doanhthu');
+  $('fabKho').style.display = name==='kho' ? 'flex' : 'none';
+  $('fabDoanhThu').style.display = name==='doanhthu' ? 'flex' : 'none';
+  ind.classList.toggle('to-revenue', name==='doanhthu');
+  if(name==='doanhthu') renderRevenue();
+}
+
+/* ============ Kho: render ============ */
+function renderIngredients(){
+  const q = $('searchInput').value.trim().toLowerCase();
+  const filtered = inventory.filter(i => i.name.toLowerCase().includes(q));
+  $('ingCountLabel').textContent = q ? `Kết quả (${filtered.length})` : `Tất cả nguyên liệu (${inventory.length})`;
+  const list = $('ingList');
+  if(filtered.length === 0){
+    list.innerHTML = `
+      <div class="empty">
+        <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="#2563EB" stroke-width="1.4">
+          <circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <p>${q ? `Không tìm thấy <b>"${escapeHtml(q)}"</b>.` : 'Chưa có nguyên liệu nào.'}<br>Nhấn <b>+</b> để thêm nguyên liệu mới.</p>
+      </div>`;
+    return;
+  }
+  list.innerHTML = filtered.map(i => {
+    const ton = (Number(i.nhap)||0) - (Number(i.xuat)||0);
+    return `
+    <div class="ing-card" onclick="openIngModal('${i.id}')">
+      <div class="ing-top">
+        <div>
+          <div class="ing-name">${escapeHtml(i.name)}</div>
+          <div class="ing-unit">Đơn vị: ${escapeHtml(i.unit||'—')}</div>
+        </div>
+        <button class="del-btn" onclick="event.stopPropagation(); askDeleteIng('${i.id}')">−</button>
+      </div>
+      <div class="stat-row">
+        <div class="stat nhap"><div class="num">${i.nhap}</div><div class="lbl">Nhập</div></div>
+        <div class="stat xuat"><div class="num">${i.xuat}</div><div class="lbl">Xuất</div></div>
+        <div class="stat ton"><div class="num">${ton}</div><div class="lbl">Tồn</div></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+/* ============ Kho: modal add/edit ============ */
+function openIngModal(id){
+  $('ingId').value = id || '';
+  if(id){
+    const item = inventory.find(i=>i.id===id);
+    $('ingModalTitle').textContent = 'Sửa nguyên liệu';
+    $('ingName').value = item.name;
+    $('ingUnit').value = item.unit||'';
+    $('ingNhap').value = item.nhap;
+    $('ingXuat').value = item.xuat;
+  } else {
+    $('ingModalTitle').textContent = 'Thêm nguyên liệu';
+    $('ingName').value = '';
+    $('ingUnit').value = 'kg';
+    $('ingNhap').value = 0;
+    $('ingXuat').value = 0;
+  }
+  $('ingOverlay').classList.add('show');
+}
+function closeIngModal(){ $('ingOverlay').classList.remove('show'); }
+async function saveIngredient(){
+  const name = $('ingName').value.trim();
+  if(!name){ showToast('Vui lòng nhập tên nguyên liệu'); return; }
+  const unit = $('ingUnit').value.trim();
+  const nhap = Number($('ingNhap').value) || 0;
+  const xuat = Number($('ingXuat').value) || 0;
+  const id = $('ingId').value;
+  if(id){
+    const item = inventory.find(i=>i.id===id);
+    Object.assign(item, {name, unit, nhap, xuat});
+  } else {
+    inventory.push({id:'i'+Date.now(), name, unit, nhap, xuat});
+  }
+  await saveInventory();
+  closeIngModal();
+  renderIngredients();
+  showToast('Đã lưu nguyên liệu');
+}
+function askDeleteIng(id){
+  const item = inventory.find(i=>i.id===id);
+  $('confirmText').innerHTML = `Xóa nguyên liệu <b>${escapeHtml(item.name)}</b>?`;
+  $('confirmBox').classList.add('show');
+  $('confirmYesBtn').onclick = async () => {
+    inventory = inventory.filter(i=>i.id!==id);
+    await saveInventory();
+    renderIngredients();
+    closeConfirm();
+    showToast('Đã xóa nguyên liệu');
+  };
+}
+function closeConfirm(){ $('confirmBox').classList.remove('show'); }
+
+/* ============ Doanh thu: render ============ */
+function renderRevenue(){
+  if(!$('dateInput').value) $('dateInput').value = todayStr();
+  const date = $('dateInput').value;
+  const items = revenueByDate[date];
+  const content = $('revenueContent');
+  if(!items || items.length===0){
+    content.innerHTML = `
+      <div class="empty">
+        <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="#0284C7" stroke-width="1.4">
+          <rect x="3" y="5" width="18" height="16" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/>
+          <line x1="8" y1="3" x2="8" y2="7"/><line x1="16" y1="3" x2="16" y2="7"/>
+        </svg>
+        <p>Chưa có dữ liệu doanh thu cho ngày này.<br>Nhấn <b>+</b> để thêm doanh thu.</p>
+      </div>`;
+    return;
+  }
+  const totalQty = items.reduce((s,i)=>s+Number(i.qty),0);
+  const totalRevenue = items.reduce((s,i)=>s+Number(i.qty)*Number(i.price),0);
+  content.innerHTML = `
+    <div class="summary-grid">
+      <div class="summary-card">
+        <div class="big">${totalQty}</div>
+        <div class="cap">Sản phẩm đã bán</div>
+      </div>
+      <div class="summary-card money">
+        <div class="big">${fmtVND(totalRevenue)}</div>
+        <div class="cap">Doanh thu tổng</div>
+      </div>
+    </div>
+    <div class="section-label">Chi tiết sản phẩm</div>
+    <div class="item-list">
+      ${items.map(i => `
+        <div class="item-row">
+          <div>
+            <div class="iname">${escapeHtml(i.name)}</div>
+            <div class="isub">${i.qty} ly × ${fmtVND(i.price)}</div>
+          </div>
+          <div class="iprice">${fmtVND(i.qty*i.price)}</div>
+        </div>
+      `).join('')}
+    </div>
+    <div class="row-actions">
+      <button class="btn-ghost edit" onclick="openRevenueModal()">Sửa dữ liệu</button>
+      <button class="btn-ghost" onclick="askDeleteRevenue()">Xóa ngày này</button>
+    </div>
+  `;
+}
+function askDeleteRevenue(){
+  const date = $('dateInput').value;
+  $('confirmText').innerHTML = `Xóa toàn bộ doanh thu ngày <b>${date}</b>?`;
+  $('confirmBox').classList.add('show');
+  $('confirmYesBtn').onclick = async () => {
+    delete revenueByDate[date];
+    await saveRevenueStore();
+    renderRevenue();
+    closeConfirm();
+    showToast('Đã xóa doanh thu ngày này');
+  };
+}
+
+/* ============ Doanh thu: modal add/edit ============ */
+function openRevenueModal(){
+  editingRevDate = $('dateInput').value || todayStr();
+  const items = revenueByDate[editingRevDate] || [];
+  $('revModalTitle').textContent = `Doanh thu ngày ${editingRevDate}`;
+  const editor = $('lineEditor');
+  editor.innerHTML = '';
+  lineCounter = 0;
+  if(items.length){
+    items.forEach(it => addLine(it));
+  } else {
+    addLine();
+  }
+  updateLiveTotal();
+  $('revOverlay').classList.add('show');
+}
+function closeRevenueModal(){ $('revOverlay').classList.remove('show'); }
+function addLine(prefill){
+  lineCounter++;
+  const rowId = 'line'+lineCounter;
+  const row = document.createElement('div');
+  row.className = 'item-editor-row';
+  row.id = rowId;
+  row.innerHTML = `
+    <input type="text" placeholder="Tên sản phẩm" class="ln-name" value="${prefill?escapeHtml(prefill.name):''}">
+    <input type="number" placeholder="SL" min="0" class="ln-qty mini" value="${prefill? prefill.qty : 1}">
+    <input type="number" placeholder="Đơn giá" min="0" class="ln-price mini" value="${prefill? prefill.price : 0}">
+    <button class="rm-line" onclick="removeLine('${rowId}')">×</button>
+  `;
+  row.querySelectorAll('input').forEach(inp => inp.addEventListener('input', updateLiveTotal));
+  $('lineEditor').appendChild(row);
+  updateLiveTotal();
+}
+function removeLine(rowId){
+  const el = $(rowId);
+  if(el) el.remove();
+  updateLiveTotal();
+}
+function updateLiveTotal(){
+  let total = 0;
+  $('lineEditor').querySelectorAll('.item-editor-row').forEach(row=>{
+    const qty = Number(row.querySelector('.ln-qty').value)||0;
+    const price = Number(row.querySelector('.ln-price').value)||0;
+    total += qty*price;
+  });
+  $('liveTotal').textContent = fmtVND(total);
+}
+async function saveRevenue(){
+  const rows = [...$('lineEditor').querySelectorAll('.item-editor-row')];
+  const items = rows.map(row=>({
+    name: row.querySelector('.ln-name').value.trim(),
+    qty: Number(row.querySelector('.ln-qty').value)||0,
+    price: Number(row.querySelector('.ln-price').value)||0
+  })).filter(i => i.name && i.qty>0);
+
+  if(items.length===0){
+    delete revenueByDate[editingRevDate];
+  } else {
+    revenueByDate[editingRevDate] = items;
+  }
+  await saveRevenueStore();
+  closeRevenueModal();
+  renderRevenue();
+  showToast('Đã lưu doanh thu');
+}
+
+/* ============ Init ============ */
+(async function init(){
+  $('dateInput').value = todayStr();
+  await loadData();
+  renderIngredients();
+  renderRevenue();
+})();
+</script>
+</body>
+</html>
