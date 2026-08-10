@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Trạm Pha Chế</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --white:#ffffff;
+    --ink:#0F2A4A;
+    --ink-soft:#5C7291;
+    --blue:#1E63EE;
+    --blue-deep:#0F44B3;
+    --blue-tint:#EAF1FF;
+    --blue-tint-2:#D7E6FF;
+    --line:#E4EAF3;
+    --pearl:#2A2320;
+    --tea:#C98A3B;
+    --ok-bg:#E9F3FF;
+    --green:#1E9E5A;
+    --green-tint:#E7F7EE;
+    --red:#E5484D;
+    --red-deep:#B42318;
+    --red-tint:#FDEEEE;
+    --shadow: 0 10px 30px -14px rgba(15,42,74,0.22);
+    --radius:20px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:'Be Vietnam Pro', system-ui, sans-serif;
+    background:var(--white);
+    color:var(--ink);
+    -webkit-font-smoothing:antialiased;
+    min-height:100vh;
+    padding-bottom:28px;
+  }
+
+  /* ---------- Header ---------- */
+  header{
+    position:sticky; top:0; z-index:20;
+    background:var(--white);
+    padding:18px 18px 14px;
+    border-bottom:1px solid var(--line);
+  }
+  .brand{
+    display:flex; align-items:center; gap:10px;
+  }
+  .brand svg{ width:34px; height:34px; flex:0 0 auto; }
+  .brand-text h1{
+    margin:0; font-size:17px; font-weight:800; letter-spacing:0.2px;
+  }
+  .brand-text p{
+    margin:2px 0 0; font-size:12px; color:var(--ink-soft); font-weight:500;
+  }
+  .queue-strip{
+    margin-top:14px;
+    display:flex; align-items:center; justify-content:space-between;
+    background:var(--blue-tint);
+    border-radius:14px;
+    padding:10px 14px;
+  }
+  .queue-strip .count{
+    font-size:13px; font-weight:600; color:var(--blue-deep);
+  }
+  .queue-strip .count b{ font-size:16px; }
+  .queue-strip .clock{
+    font-size:12px; color:var(--ink-soft); font-weight:500;
+  }
+  .queue-strip.has-alert{ background:var(--red-tint); }
+  .queue-strip.has-alert .count{ color:var(--red-deep); }
+
+  /* ---------- Order list (stacked, top to bottom) ---------- */
+  .rail-wrap{ padding:14px 0 24px; max-width:480px; margin:0 auto; }
+  .rail{
+    display:flex;
+    flex-direction:column;
+    gap:14px;
+    padding:4px 16px 10px;
+  }
+
+  .card{
+    width:100%;
+    background:var(--white);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    box-shadow:var(--shadow);
+    padding:16px 16px 18px;
+    display:flex;
+    flex-direction:column;
+    gap:14px;
+    transition:background .25s ease, border-color .25s ease;
+  }
+  .card.is-ready{ border-color:var(--blue-tint-2); background:linear-gradient(180deg, var(--ok-bg) 0%, #ffffff 60%); }
+  .card.is-cancelled{
+    background:linear-gradient(180deg, var(--red) 0%, var(--red-deep) 100%);
+    border-color:var(--red-deep);
+    color:#fff;
+  }
+
+  .card-top{
+    display:flex; justify-content:space-between; align-items:flex-start;
+  }
+  .order-id{
+    font-size:11px; font-weight:700; color:var(--blue-deep);
+    background:var(--blue-tint); padding:4px 9px; border-radius:999px;
+    letter-spacing:0.3px;
+  }
+  .card.is-cancelled .order-id{ background:rgba(255,255,255,0.22); color:#fff; }
+  .order-time{ font-size:11px; color:var(--ink-soft); font-weight:500; }
+  .card.is-cancelled .order-time{ color:rgba(255,255,255,0.85); }
+
+  .drink-name{ font-size:19px; font-weight:800; margin:0; line-height:1.25; }
+  .tags{ display:flex; flex-wrap:wrap; gap:6px; }
+  .tag{
+    font-size:11.5px; font-weight:600; color:var(--ink-soft);
+    background:#F4F7FB; border:1px solid var(--line);
+    padding:4px 9px; border-radius:8px;
+  }
+  .card.is-cancelled .tag{ background:rgba(255,255,255,0.16); border-color:rgba(255,255,255,0.3); color:#fff; }
+
+  /* ---------- Stepper ---------- */
+  .stepper{ display:flex; align-items:center; margin-top:2px; }
+  .step{ display:flex; flex-direction:column; align-items:center; flex:1; position:relative; }
+  .dot{
+    width:20px; height:20px; border-radius:50%;
+    border:2px solid var(--line); background:var(--white);
+    display:flex; align-items:center; justify-content:center;
+    font-size:10px; font-weight:800; color:transparent;
+    transition:all .25s ease;
+    z-index:2;
+  }
+  .step.done .dot{ background:var(--blue); border-color:var(--blue); color:#fff; }
+  .step.current .dot{ border-color:var(--blue); box-shadow:0 0 0 4px var(--blue-tint); color:transparent; }
+  .step.current .dot::after{
+    content:''; width:8px; height:8px; border-radius:50%; background:var(--blue);
+  }
+  .step-label{
+    font-size:9.5px; font-weight:700; color:var(--ink-soft);
+    margin-top:6px; text-align:center; line-height:1.2; max-width:64px;
+  }
+  .step.done .step-label, .step.current .step-label{ color:var(--ink); }
+  .connector{
+    position:absolute; top:9px; left:calc(-50% + 10px); width:calc(100% - 20px);
+    height:2px; background:var(--line); z-index:1;
+  }
+  .step:first-child .connector{ display:none; }
+  .step.done .connector, .step.current .connector{ background:var(--blue); }
+
+  /* ---------- Cup visual ---------- */
+  .cup-zone{
+    display:flex; align-items:center; gap:14px;
+    background:#F7F9FC; border-radius:16px; padding:12px 14px;
+  }
+  .cup-zone svg{ width:52px; height:64px; flex:0 0 auto; }
+  .status-info{ flex:1; }
+  .status-label{
+    display:inline-block;
+    font-size:13px; font-weight:800; color:var(--blue-deep);
+    background:var(--blue-tint); padding:5px 10px; border-radius:8px;
+  }
+  .status-hint{ margin:6px 0 0; font-size:11.5px; color:var(--ink-soft); font-weight:500; }
+
+  /* ---------- CTA ---------- */
+  .cta{
+    appearance:none; border:none; width:100%;
+    padding:14px 16px; border-radius:14px;
+    font-family:inherit; font-size:15px; font-weight:700;
+    background:var(--blue); color:#fff;
+    display:flex; align-items:center; justify-content:center; gap:8px;
+    cursor:pointer;
+    transition:transform .12s ease, background .2s ease, box-shadow .2s ease;
+    box-shadow:0 8px 18px -8px rgba(30,99,238,0.55);
+  }
+  .cta:active{ transform:scale(0.98); }
+  .cta[disabled]{
+    background:var(--ok-bg); color:var(--blue-deep);
+    box-shadow:none; cursor:default;
+  }
+  .cta svg{ width:16px; height:16px; }
+
+  .cta-ghost{
+    appearance:none; width:100%; padding:12px 16px; border-radius:14px;
+    font-family:inherit; font-size:13.5px; font-weight:700; cursor:pointer;
+    background:transparent; border:1.5px solid var(--red); color:var(--red-deep);
+    display:flex; align-items:center; justify-content:center; gap:6px;
+  }
+  .cta-ghost svg{ width:15px; height:15px; }
+
+  .confirm-row{
+    background:var(--red-tint); border:1.5px solid var(--red);
+    border-radius:14px; padding:12px 14px;
+  }
+  .confirm-row p{ margin:0 0 10px; font-size:12.5px; font-weight:700; color:var(--red-deep); }
+  .reason-label{ font-size:11px; font-weight:700; color:var(--red-deep); opacity:0.8; margin:0 0 8px; text-transform:uppercase; letter-spacing:0.3px; }
+  .reason-grid{ display:flex; flex-wrap:wrap; gap:7px; margin-bottom:12px; }
+  .reason-chip{
+    border:1.5px solid var(--red); background:#fff; color:var(--red-deep);
+    font-family:inherit; font-size:12px; font-weight:700; padding:7px 12px;
+    border-radius:999px; cursor:pointer; transition:all .15s ease;
+  }
+  .reason-chip.selected{ background:var(--red); color:#fff; }
+  .reason-input{
+    width:100%; font-family:inherit; font-size:13px; font-weight:600;
+    padding:10px 12px; border-radius:10px; border:1.5px solid var(--red);
+    color:var(--red-deep); margin-bottom:12px; outline:none;
+  }
+  .reason-input::placeholder{ color:var(--red); opacity:0.55; font-weight:500; }
+  .confirm-actions{ display:flex; gap:8px; }
+  .confirm-actions button{
+    flex:1; border:none; border-radius:10px; padding:10px; font-family:inherit;
+    font-size:12.5px; font-weight:700; cursor:pointer;
+  }
+  .btn-back{ background:#fff; border:1.5px solid var(--line); color:var(--ink-soft); }
+  .btn-confirm{ background:var(--red); color:#fff; }
+
+  .cancel-banner{
+    display:flex; align-items:flex-start; gap:10px;
+    background:rgba(255,255,255,0.16); border-radius:14px; padding:12px 14px;
+  }
+  .cancel-banner svg{ width:22px; height:22px; flex:0 0 auto; }
+  .cancel-banner b{ display:block; font-size:14px; margin-bottom:2px; }
+  .cancel-banner span{ font-size:12px; opacity:0.92; }
+  .undo-btn{
+    width:100%; margin-top:2px; background:rgba(255,255,255,0.18); border:1.5px solid rgba(255,255,255,0.55);
+    color:#fff; border-radius:12px; padding:10px; font-family:inherit; font-size:12.5px; font-weight:700; cursor:pointer;
+  }
+
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <svg viewBox="0 0 40 40" fill="none">
+      <path d="M9 11h22l-2.2 20.5a3 3 0 0 1-3 2.7H14.2a3 3 0 0 1-3-2.7L9 11Z" fill="var(--blue-tint)" stroke="var(--blue)" stroke-width="2"/>
+      <path d="M7 11h26" stroke="var(--blue)" stroke-width="2" stroke-linecap="round"/>
+      <path d="M15 6.5c0-1.2 1-2 2-1.3 1.3.9 1.3 2.6 0 3.5-1 .7-2-.1-2-1.3Z" fill="var(--blue)"/>
+      <circle cx="15.5" cy="26" r="1.6" fill="var(--blue)"/>
+      <circle cx="20" cy="29.5" r="1.6" fill="var(--blue)"/>
+      <circle cx="24.5" cy="25.5" r="1.6" fill="var(--blue)"/>
+    </svg>
+    <div class="brand-text">
+      <h1>Trạm Pha Chế</h1>
+      <p>Cập nhật trạng thái đồ uống</p>
+    </div>
+  </div>
+  <div class="queue-strip" id="queueStrip">
+    <div class="count"><b id="pendingCount">0</b> đơn đang chờ xử lý</div>
+    <div class="clock" id="clock">--:--</div>
+  </div>
+</header>
+
+<div class="rail-wrap">
+  <div class="rail" id="rail"></div>
+</div>
+
+<script>
+  const STAGES = ["Bắt đầu pha chế", "Đang pha chế", "Hoàn thành", "Sẵn sàng phục vụ"];
+  const NEXT_LABEL = ["Bắt đầu pha chế", "Hoàn thành pha chế", "Đánh dấu sẵn sàng"];
+  const HINTS = [
+    "Đơn hàng mới, chưa được xử lý.",
+    "Đang thực hiện pha chế cho đơn này.",
+    "Đã pha xong, chờ đóng gói / đánh dấu sẵn sàng.",
+    "Đồ uống đã sẵn sàng, có thể giao cho khách."
+  ];
+
+  const CANCEL_REASONS = [
+    "Hết nguyên liệu",
+    "Order sai",
+    "Lý do khác"
+  ];
+
+  const orders = [
+    { id: "#032", time: "14:05", table: "Bàn 5", name: "Trà sữa trân châu đường đen", tags: ["Size L","70% đường","Ít đá"], stage: 0, cancelled: false, confirming: false, cancelReason: null, selectedReasonType: null, customText: '' },
+    { id: "#033", time: "14:06", table: "Bàn 2", name: "Hồng trà đào cam sả",         tags: ["Size M","50% đường","Đá riêng"], stage: 1, cancelled: false, confirming: false, cancelReason: null, selectedReasonType: null, customText: '' },
+    { id: "#034", time: "14:07", table: "Mang về", name: "Matcha kem cheese",           tags: ["Size L","Không đường","Đá vừa"], stage: 2, cancelled: false, confirming: false, cancelReason: null, selectedReasonType: null, customText: '' },
+    { id: "#035", time: "14:08", table: "Bàn 8", name: "Trà sữa Oolong nướng",        tags: ["Size M","30% đường","Ít đá"], stage: 3, cancelled: false, confirming: false, cancelReason: null, selectedReasonType: null, customText: '' },
+  ];
+
+  function cupSVG(stage){
+    const liquidHeights = [0, 16, 30, 30];
+    const showBoba = stage >= 2;
+    const showLid = stage === 3;
+    const liquidY = 50 - liquidHeights[stage];
+    return `
+    <svg viewBox="0 0 52 64" fill="none">
+      <path d="M9 16h34l-4.5 34a4 4 0 0 1-4 3.5h-17a4 4 0 0 1-4-3.5L9 16Z" fill="#F7F9FC" stroke="var(--line)" stroke-width="2"/>
+      ${ liquidHeights[stage] > 0 ? `
+        <rect x="9" y="${liquidY}" width="34" height="${34-liquidY+20}" fill="var(--tea)" opacity="0.85" />
+      ` : ''}
+      ${ showBoba ? `
+        <circle cx="18" cy="48" r="2.1" fill="var(--pearl)"/>
+        <circle cx="24" cy="51" r="2.1" fill="var(--pearl)"/>
+        <circle cx="30" cy="48.5" r="2.1" fill="var(--pearl)"/>
+        <circle cx="21" cy="45" r="2.1" fill="var(--pearl)"/>
+        <circle cx="27" cy="44.5" r="2.1" fill="var(--pearl)"/>
+      ` : '' }
+      <path d="M7 16h38" stroke="var(--blue)" stroke-width="2.2" stroke-linecap="round"/>
+      ${ showLid ? `
+        <rect x="10" y="10" width="32" height="5" rx="2.5" fill="var(--blue)"/>
+        <rect x="24" y="2" width="4" height="11" rx="2" fill="var(--blue-deep)"/>
+      ` : `
+        <path d="M14 12c1.5-3 3-4.5 5-4.5" stroke="var(--blue)" stroke-width="1.6" stroke-linecap="round" opacity="0.5"/>
+      `}
+    </svg>`;
+  }
+
+  function stepperHTML(stage){
+    return STAGES.map((label, i) => {
+      let cls = 'step';
+      if (i < stage) cls += ' done';
+      else if (i === stage) cls += ' current';
+      return `
+        <div class="${cls}">
+          <div class="connector"></div>
+          <div class="dot">${ i < stage ? '✓' : '' }</div>
+          <div class="step-label">${label}</div>
+        </div>`;
+    }).join('');
+  }
+
+  function renderBaristaCard(order, index){
+    if (order.cancelled){
+      return `
+      <div class="card is-cancelled">
+        <div class="card-top">
+          <span class="order-id">${order.id} · ${order.table}</span>
+          <span class="order-time">Nhận lúc ${order.time}</span>
+        </div>
+        <div>
+          <p class="drink-name">${order.name}</p>
+          <div class="tags">${order.tags.map(t => `<span class="tag">${t}</span>`).join('')}</div>
+        </div>
+        <div class="cancel-banner">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4M12 17h.01M10.3 3.9 2.5 17a2 2 0 0 0 1.7 3h15.6a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg>
+          <div>
+            <b>ĐÃ HỦY MÓN</b>
+            <span>Lý do: ${order.cancelReason || 'Không rõ'}</span>
+          </div>
+        </div>
+        <button class="undo-btn" onclick="undoCancel(${index})">Hoàn tác (huỷ nhầm)</button>
+      </div>`;
+    }
+
+    const isReady = order.stage === 3;
+    const nextBtn = isReady
+      ? `<button class="cta" disabled>✓ Đã sẵn sàng phục vụ</button>`
+      : `<button class="cta" onclick="advance(${index})">
+           ${NEXT_LABEL[order.stage]}
+           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+         </button>`;
+
+    const cancelZone = order.stage === 1 ? (
+      order.confirming ? `
+        <div class="confirm-row">
+          <p>Xác nhận hủy món này?</p>
+          <p class="reason-label">Chọn lý do hủy</p>
+          <div class="reason-grid">
+            ${CANCEL_REASONS.map(r => `
+              <button type="button" class="reason-chip ${order.selectedReasonType === r ? 'selected' : ''}" onclick="selectReason(${index}, '${r}')">${r}</button>
+            `).join('')}
+          </div>
+          ${ order.selectedReasonType === 'Lý do khác' ? `
+            <input type="text" class="reason-input" placeholder="Nhập lý do..." value="${order.customText.replace(/"/g,'&quot;')}"
+                   oninput="setCustomText(${index}, this.value)" />
+          ` : '' }
+          <div class="confirm-actions">
+            <button class="btn-back" onclick="toggleConfirm(${index}, false)">Quay lại</button>
+            <button class="btn-confirm" ${order.cancelReason ? '' : 'disabled style="opacity:.45;cursor:not-allowed"'} onclick="cancelOrder(${index})">Xác nhận hủy</button>
+          </div>
+        </div>`
+      : `
+        <button class="cta-ghost" onclick="toggleConfirm(${index}, true)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+          Hủy món
+        </button>`
+    ) : '';
+
+    return `
+    <div class="card ${isReady ? 'is-ready' : ''}">
+      <div class="card-top">
+        <span class="order-id">${order.id} · ${order.table}</span>
+        <span class="order-time">Nhận lúc ${order.time}</span>
+      </div>
+      <div>
+        <p class="drink-name">${order.name}</p>
+        <div class="tags">${order.tags.map(t => `<span class="tag">${t}</span>`).join('')}</div>
+      </div>
+      <div class="stepper">${stepperHTML(order.stage)}</div>
+      <div class="cup-zone">
+        ${cupSVG(order.stage)}
+        <div class="status-info">
+          <span class="status-label">${STAGES[order.stage]}</span>
+          <p class="status-hint">${HINTS[order.stage]}</p>
+        </div>
+      </div>
+      ${nextBtn}
+      ${cancelZone}
+    </div>`;
+  }
+
+  function renderAll(){
+    document.getElementById('rail').innerHTML = orders.map(renderBaristaCard).join('');
+    document.getElementById('pendingCount').textContent =
+      orders.filter(o => !o.cancelled && o.stage < 3).length;
+
+    const hasCancelled = orders.some(o => o.cancelled);
+    document.getElementById('queueStrip').classList.toggle('has-alert', hasCancelled);
+  }
+
+  function advance(index){
+    if (orders[index].stage < 3) orders[index].stage++;
+    renderAll();
+  }
+
+  function toggleConfirm(index, val){
+    orders[index].confirming = val;
+    if (!val){
+      orders[index].cancelReason = null;
+      orders[index].selectedReasonType = null;
+      orders[index].customText = '';
+    }
+    renderAll();
+  }
+
+  function selectReason(index, reason){
+    orders[index].selectedReasonType = reason;
+    if (reason === 'Lý do khác'){
+      orders[index].cancelReason = orders[index].customText.trim() || null;
+    } else {
+      orders[index].cancelReason = reason;
+      orders[index].customText = '';
+    }
+    renderAll();
+  }
+
+  function setCustomText(index, value){
+    orders[index].customText = value;
+    orders[index].cancelReason = value.trim() || null;
+    // update confirm button state without a full re-render (keeps focus in the input)
+    const btn = document.querySelector(`#rail .card:nth-child(${index+1}) .btn-confirm`);
+    if (btn){
+      const enabled = !!orders[index].cancelReason;
+      btn.disabled = !enabled;
+      btn.style.opacity = enabled ? '' : '.45';
+      btn.style.cursor = enabled ? '' : 'not-allowed';
+    }
+  }
+
+  function cancelOrder(index){
+    if (!orders[index].cancelReason) return;
+    orders[index].cancelled = true;
+    orders[index].confirming = false;
+    renderAll();
+  }
+
+  function undoCancel(index){
+    orders[index].cancelled = false;
+    orders[index].cancelReason = null;
+    orders[index].selectedReasonType = null;
+    orders[index].customText = '';
+    renderAll();
+  }
+
+  function tickClock(){
+    const now = new Date();
+    const hh = String(now.getHours()).padStart(2,'0');
+    const mm = String(now.getMinutes()).padStart(2,'0');
+    document.getElementById('clock').textContent = `${hh}:${mm}`;
+  }
+
+  renderAll();
+  tickClock();
+  setInterval(tickClock, 15000);
+</script>
+</body>
+</html>
